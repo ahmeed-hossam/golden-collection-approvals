@@ -12,6 +12,7 @@ Approval rules, policy and tools for Marketing and CX & Live Ops spend requests.
 | `policy/approval-cycle-policy.docx` | The same policy as a Word file |
 | `workbooks/approval-bands.xlsx` | Bands, FP&A rules, media exception and an approval checker |
 | `workbooks/approval-examples.xlsx` | Worked examples for each band and rule |
+| `platform/` | Approvals web app (Google Apps Script) on top of the live Sheet: request form, approver queues, email routing, SLA reminders. See `platform/README.md` |
 
 ## Live tools
 - **Request log:** [Golden Collection – Approval Requests](https://docs.google.com/spreadsheets/d/1okUZL6QAH3_m2b-KH1RNw52SZK-IQhMwtngyT_1CMeY/edit) (Google Sheet). People submit requests and each approver signs their own step; bands are edited on the Settings tab.

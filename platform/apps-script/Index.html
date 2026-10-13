@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  :root {
+    --bg: #f6f5f1; --card: #ffffff; --ink: #1d1d1b; --muted: #6b6a64; --line: #e3e1da;
+    --gold: #a07a1c; --gold-soft: #f4ecd6; --ok: #2f7d4f; --bad: #b3362c; --warn: #b26b00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #151513; --card: #1f1f1c; --ink: #ecebe6; --muted: #a3a29b; --line: #34332e;
+      --gold: #d6b25a; --gold-soft: #3a3220; --ok: #6cc08e; --bad: #f0857b; --warn: #f0b45a; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+  header h1 { font-size: 18px; margin: 0; }
+  header .who { color: var(--muted); margin-left: auto; }
+  nav { display: flex; gap: 4px; padding: 8px 16px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  nav button { background: none; border: 0; padding: 8px 12px; border-radius: 6px; color: var(--muted); cursor: pointer; font: inherit; white-space: nowrap; }
+  nav button.on { background: var(--gold-soft); color: var(--ink); font-weight: 600; }
+  main { padding: 16px; max-width: 1200px; margin: 0 auto; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.click { cursor: pointer; } tr.click:hover { background: var(--gold-soft); }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 12px; background: var(--gold-soft); }
+  .pill.ok { color: var(--ok); } .pill.bad { color: var(--bad); } .pill.warn { color: var(--warn); }
+  .muted { color: var(--muted); }
+  label { display: block; font-weight: 600; margin: 12px 0 4px; }
+  input, select, textarea { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--ink); font: inherit; }
+  textarea { min-height: 70px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0 16px; }
+  .checks label { font-weight: 400; display: flex; gap: 8px; align-items: center; margin: 6px 0; }
+  .checks input { width: auto; }
+  .btn { background: var(--gold); color: #fff; border: 0; padding: 9px 16px; border-radius: 6px; cursor: pointer; font: inherit; font-weight: 600; }
+  .btn.ghost { background: none; color: var(--ink); border: 1px solid var(--line); }
+  .btn.bad { background: var(--bad); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .route { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .route span { padding: 4px 10px; border-radius: 6px; background: var(--gold-soft); font-size: 13px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  .kpi .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .msg { padding: 10px 12px; border-radius: 6px; margin-bottom: 12px; }
+  .msg.err { background: #fbe4e1; color: #7a1f17; } .msg.ok { background: #e1f3e7; color: #1d4f31; }
+  dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); width: min(760px, 96vw); padding: 20px; }
+  dialog::backdrop { background: rgba(0,0,0,.35); }
+  dl { display: grid; grid-template-columns: 160px 1fr; gap: 4px 12px; margin: 0; }
+  dt { color: var(--muted); }
+  .steps { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+  .steps div { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--line); font-size: 13px; }
+  .steps .Approved { border-color: var(--ok); color: var(--ok); }
+  .steps .Rejected, .steps .Returned { border-color: var(--bad); color: var(--bad); }
+  .steps .current { border-color: var(--gold); background: var(--gold-soft); font-weight: 600; }
+  @media (max-width: 640px) { .hide-sm { display: none; } dl { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Golden Collection approvals</h1>
+  <span class="muted">Marketing · CX &amp; Live Ops · EGP incl. VAT</span>
+  <span class="who" id="who">Loading…</span>
+</header>
+<nav id="nav">
+  <button data-view="queue" class="on">My queue</button>
+  <button data-view="mine">My requests</button>
+  <button data-view="new">New request</button>
+  <button data-view="all">All requests</button>
+  <button data-view="dash">Dashboard</button>
+</nav>
+<main>
+  <div id="flash"></div>
+  <section id="view"></section>
+</main>
+
+<dialog id="detail"></dialog>
+
+<script>
+var OPEN_ID = <?= JSON.stringify(openId) ?>;
+var boot = null, requests = [], view = 'queue';
+
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function money(n) { return Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 0 }); }
+function $(id) { return document.getElementById(id); }
+function flash(text, kind) { $('flash').innerHTML = text ? '<div class="msg ' + (kind || 'ok') + '">' + esc(text) + '</div>' : ''; }
+function call(fn, args, ok) {
+  var r = google.script.run.withSuccessHandler(ok).withFailureHandler(function (e) { flash(e.message || String(e), 'err'); });
+  r[fn].apply(r, args || []);
+}
+
+function statusPill(r) {
+  var cls = r.status === 'Rejected' || r.status === 'Returned to requester' ? 'bad'
+    : r.status === 'Paid' || r.status === 'Approved, with Accounting' ? 'ok' : (r.overdue ? 'warn' : '');
+  return '<span class="pill ' + cls + '">' + esc(r.status) + (r.overdue ? ' · overdue' : '') + '</span>';
+}
+
+function table(rows, empty) {
+  if (!rows.length) return '<div class="card muted">' + esc(empty) + '</div>';
+  return '<div class="card" style="padding:0;overflow-x:auto"><table><thead><tr>' +
+    '<th>ID</th><th class="hide-sm">Raised</th><th>Description</th><th class="hide-sm">Dept</th>' +
+    '<th class="num">EGP</th><th>Band</th><th>Status</th><th class="hide-sm">Waiting</th></tr></thead><tbody>' +
+    rows.map(function (r) {
+      return '<tr class="click" data-id="' + esc(r.id) + '"><td><b>' + esc(r.id) + '</b></td>' +
+        '<td class="hide-sm">' + esc(r.dateRaised) + '</td><td>' + esc(r.description) +
+        '<div class="muted">' + esc(r.vendor) + ' · ' + esc(r.type) + '</div></td>' +
+        '<td class="hide-sm">' + esc(r.department) + '</td><td class="num">' + money(r.value) + '</td>' +
+        '<td>' + esc(r.band) + '</td><td>' + statusPill(r) + '</td>' +
+        '<td class="hide-sm">' + (r.slaDays ? esc(r.waitedDays + ' / ' + r.slaDays + ' wd') : '') + '</td></tr>';
+    }).join('') + '</tbody></table></div>';
+}
+
+function render() {
+  [].forEach.call(document.querySelectorAll('nav button'), function (b) { b.classList.toggle('on', b.dataset.view === view); });
+  var v = $('view');
+  if (!boot.me) {
+    v.innerHTML = '<div class="card">Your Google account <b>' + esc(boot.email || '(not shared by Google)') +
+      '</b> is not on the People tab of the approvals Sheet. Ask FP&amp;A to add you with your role and department.</div>';
+    return;
+  }
+  if (view === 'queue') {
+    var q = requests.filter(function (r) { return r.canAct || r.canPay || r.canResubmit; });
+    v.innerHTML = '<h2>Waiting on you</h2>' + table(q, 'Nothing is waiting on you.');
+  } else if (view === 'mine') {
+    v.innerHTML = '<h2>Requests you raised</h2>' + table(requests.filter(function (r) { return r.isMine; }), 'You have not raised any requests yet.');
+  } else if (view === 'all') {
+    v.innerHTML = '<h2>All requests you can see</h2>' + table(requests, 'No requests yet.');
+  } else if (view === 'dash') {
+    renderDash(v);
+  } else if (view === 'new') {
+    renderForm(v, null);
+  }
+}
+
+function renderDash(v) {
+  var open = requests.filter(function (r) { return /^Pending/.test(r.status); });
+  var sum = function (a) { return a.reduce(function (s, r) { return s + r.value; }, 0); };
+  var overdue = open.filter(function (r) { return r.overdue; });
+  var byStatus = {};
+  requests.forEach(function (r) { var k = r.status; byStatus[k] = byStatus[k] || { n: 0, v: 0 }; byStatus[k].n++; byStatus[k].v += r.value; });
+  var byBand = {};
+  requests.forEach(function (r) { byBand[r.band] = byBand[r.band] || { n: 0, v: 0 }; byBand[r.band].n++; byBand[r.band].v += r.value; });
+  var total = requests.length || 1;
+  var ab = ((byBand.A ? byBand.A.n : 0) + (byBand.B ? byBand.B.n : 0)) / total;
+  v.innerHTML = '<h2>Pipeline</h2><div class="kpis">' +
+    kpi('Open requests', open.length, 'EGP ' + money(sum(open))) +
+    kpi('Overdue vs SLA', overdue.length, 'EGP ' + money(sum(overdue))) +
+    kpi('Closing at dept level (A–B)', Math.round(ab * 100) + '%', 'Policy assumption: 70–80% of count') +
+    kpi('Joint payment (Accounting + CEO)', requests.filter(function (r) { return r.jointPayment === 'Y'; }).length, 'requests above threshold') +
+    '</div><div class="grid" style="margin-top:16px">' +
+    mini('By status', byStatus) + mini('By band', byBand) + '</div>' +
+    '<h2>Overdue</h2>' + table(overdue, 'No request is past its SLA.');
+}
+function kpi(label, val, sub) { return '<div class="card kpi"><div class="muted">' + esc(label) + '</div><div class="v">' + esc(val) + '</div><div class="muted">' + esc(sub) + '</div></div>'; }
+function mini(title, obj) {
+  return '<div class="card"><b>' + esc(title) + '</b><table><tr><th></th><th class="num">Count</th><th class="num">EGP</th></tr>' +
+    Object.keys(obj).sort().map(function (k) { return '<tr><td>' + esc(k) + '</td><td class="num">' + obj[k].n + '</td><td class="num">' + money(obj[k].v) + '</td></tr>'; }).join('') +
+    '</table></div>';
+}
+
+var FLAGS = [
+  ['outOfBudget', 'Out of budget (name the offset in the business case)'],
+  ['newVendor', 'New vendor'],
+  ['longContract', 'Contract over 12 months or auto-renewing'],
+  ['hiring', 'Hiring'],
+  ['discount', 'Discount beyond the price list'],
+  ['mediaTopUp', 'Ad top-up within an FP&A-signed media plan']
+];
+
+function renderForm(v, existing) {
+  var r = existing || { flags: {} };
+  var opt = function (list, sel) { return list.map(function (x) { return '<option' + (x === sel ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join(''); };
+  v.innerHTML = '<h2>' + (existing ? 'Resubmit ' + esc(existing.id) : 'New request') + '</h2><form id="f" class="card">' +
+    '<div class="grid">' +
+    '<div><label>Department</label><select name="department" ' + (existing ? 'disabled' : '') + '>' + opt(boot.departments, r.department || boot.me.department) + '</select></div>' +
+    '<div><label>Request type</label><select name="type">' + opt(boot.requestTypes, r.type) + '</select></div>' +
+    '<div><label>Value (EGP incl. VAT; total contract value if recurring)</label><input name="value" type="number" min="1" step="1" value="' + esc(r.value || '') + '"></div>' +
+    '<div><label>Vendor</label><input name="vendor" value="' + esc(r.vendor || '') + '"></div>' +
+    '<div><label>Budget line</label><input name="budgetLine" value="' + esc(r.budgetLine || '') + '"></div>' +
+    '</div>' +
+    '<label>Description</label><input name="description" value="' + esc(r.description || '') + '">' +
+    '<label>Business case</label><textarea name="businessCase" placeholder="Marketing: expected ROI. Ops: cost per contact and effect on SLA, first response time, CSAT. Out of budget: the offset."></textarea>' +
+    '<label>FP&amp;A triggers</label><div class="checks">' +
+    FLAGS.map(function (f) { return '<label><input type="checkbox" name="' + f[0] + '"' + (r.flags[f[0]] ? ' checked' : '') + '> ' + esc(f[1]) + '</label>'; }).join('') + '</div>' +
+    (existing ? '' : '<label>Notes (attachment links: quotes, brief, contract draft)</label><input name="notes">') +
+    '<div id="route" class="muted" style="margin-top:12px"></div>' +
+    '<div class="row"><button class="btn" type="submit">' + (existing ? 'Resubmit' : 'Submit for approval') + '</button>' +
+    (existing ? '<button class="btn ghost" type="button" id="cancel">Cancel</button>' : '') + '</div></form>' +
+    '<p class="muted">Splitting one need into smaller requests to stay under a band is a policy breach. No PO, vendor confirmation or offer letter before the final approval.</p>';
+  var f = $('f');
+  var read = function () {
+    var o = {};
+    [].forEach.call(f.elements, function (el) { if (el.name) o[el.name] = el.type === 'checkbox' ? el.checked : el.value; });
+    if (existing) o.department = existing.department;
+    return o;
+  };
+  var t = null;
+  var preview = function () {
+    clearTimeout(t);
+    t = setTimeout(function () {
+      var o = read();
+      if (!(Number(o.value) > 0)) { $('route').innerHTML = ''; return; }
+      call('previewRouteFor', [o.value, o.type, o], function (p) {
+        if (!p) return;
+        $('route').innerHTML = 'Band <b>' + esc(p.band) + '</b> · quotes needed: ' + p.quotes +
+          (p.jointPayment ? ' · payment needs Accounting + CEO jointly' : '') +
+          '<div class="route">' + p.steps.map(function (s) { return '<span>' + esc(s) + '</span>'; }).join('→') + '</div>' +
+          '<div style="margin-top:4px">CEO Executive Assistant copied at every step.</div>';
+      });
+    }, 300);
+  };
+  f.addEventListener('input', preview); f.addEventListener('change', preview); preview();
+  if (existing) $('cancel').onclick = function () { view = 'mine'; render(); };
+  f.onsubmit = function (e) {
+    e.preventDefault();
+    var btn = f.querySelector('button[type=submit]'); btn.disabled = true;
+    var done = function (res) { flash(res.id + ' ' + (existing ? 'resubmitted' : 'submitted') + ' · ' + res.status); view = 'mine'; load(); };
+    google.script.run.withSuccessHandler(done).withFailureHandler(function (err) { btn.disabled = false; flash(err.message, 'err'); })
+      [existing ? 'resubmitRequest' : 'submitRequest'].apply(null, existing ? [existing.id, read()] : [read()]);
+  };
+}
+
+function openDetail(id) {
+  call('getRequest', [id], function (r) {
+    var d = $('detail');
+    var chain = [['l1', 'L1 Senior / Lead', 'Y'], ['l2', 'L2 Dept Manager', r.l2Required], ['fpa', 'FP&A (2nd)', r.fpaRequired],
+      ['strategy', 'Strategy Analyst', r.strategyCeoRequired], ['ceo', 'CEO', r.strategyCeoRequired]]
+      .filter(function (s) { return s[2] === 'Y'; })
+      .map(function (s) {
+        var dec = r.decisions[s[0]] || '';
+        return '<div class="' + esc(dec) + (r.nextStep === s[1] ? ' current' : '') + '">' + esc(s[1]) + (dec ? ': ' + esc(dec) : '') + '</div>';
+      }).join('') + '<div class="' + (r.paidOn ? 'Approved' : (r.canPay || r.status === 'Approved, with Accounting' ? 'current' : '')) + '">Accounting' + (r.paidOn ? ': paid ' + esc(r.paidOn) : '') + '</div>';
+    var flags = FLAGS.filter(function (f) { return r.flags[f[0]]; }).map(function (f) { return f[1]; }).join('; ') || 'None';
+    var actions = '';
+    if (r.canAct) {
+      actions = '<label>Comment (required to reject or return)</label><textarea id="cmt"></textarea><div class="row">' +
+        '<button class="btn" data-dec="Approved">' + (r.nextStep === 'Strategy Analyst' ? 'Recommend to CEO' : 'Approve') + '</button>' +
+        '<button class="btn ghost" data-dec="Returned">Return to requester</button>' +
+        '<button class="btn bad" data-dec="Rejected">Reject</button></div>';
+    } else if (r.canPay) {
+      actions = '<label>Payment reference</label><input id="ref">' +
+        (r.jointPayment === 'Y' ? '<div class="checks"><label><input type="checkbox" id="cosign"> CEO has co-signed this payment</label></div>' : '') +
+        '<div class="row"><button class="btn" id="pay">Mark paid</button></div>';
+    } else if (r.canResubmit) {
+      actions = '<div class="row"><button class="btn" id="resub">Edit and resubmit</button></div>';
+    } else if (r.actReason) {
+      actions = '<p class="muted">' + esc(r.actReason) + '</p>';
+    }
+    var isEa = boot.me.role === 'CEO EA';
+    d.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">' + esc(r.id) + '</h2>' +
+      '<button class="btn ghost" id="close">Close</button></div>' +
+      '<p>' + statusPill(r) + (r.slaDays ? ' <span class="muted">waited ' + r.waitedDays + ' of ' + r.slaDays + ' working days</span>' : '') + '</p>' +
+      '<div class="steps">' + chain + '</div><dl>' +
+      '<dt>Description</dt><dd>' + esc(r.description) + '</dd>' +
+      '<dt>Department · type</dt><dd>' + esc(r.department) + ' · ' + esc(r.type) + '</dd>' +
+      '<dt>Requester</dt><dd>' + esc(r.requester) + ' <span class="muted">' + esc(r.requesterEmail) + '</span></dd>' +
+      '<dt>Vendor</dt><dd>' + esc(r.vendor) + '</dd>' +
+      '<dt>Value</dt><dd>EGP ' + money(r.value) + ' incl. VAT · Band ' + esc(r.band) + (r.jointPayment === 'Y' ? ' · joint payment' : '') + '</dd>' +
+      '<dt>Budget line</dt><dd>' + esc(r.budgetLine) + '</dd>' +
+      '<dt>FP&amp;A triggers</dt><dd>' + esc(flags) + '</dd>' +
+      '<dt>Notes</dt><dd>' + esc(r.notes) + '</dd></dl>' + actions +
+      '<h3>History</h3><table>' + r.history.map(function (h) {
+        return '<tr><td class="muted" style="white-space:nowrap">' + esc(h.at) + '</td><td><b>' + esc(h.action) + '</b>' + (h.step ? ' · ' + esc(h.step) : '') +
+          '<div class="muted">' + esc(h.actor) + '</div></td><td>' + esc(h.comment) + '</td></tr>';
+      }).join('') + '</table>' +
+      '<label>Add a comment</label><textarea id="note"></textarea><div class="row"><button class="btn ghost" id="addnote">Comment</button>' +
+      (isEa ? '<button class="btn ghost" id="flagceo">Flag for CEO attention</button>' : '') + '</div>';
+    d.showModal();
+    $('close').onclick = function () { d.close(); };
+    [].forEach.call(d.querySelectorAll('[data-dec]'), function (b) {
+      b.onclick = function () {
+        b.disabled = true;
+        google.script.run.withSuccessHandler(function (res) { d.close(); flash(res.id + ' · ' + res.status); load(); })
+          .withFailureHandler(function (e) { b.disabled = false; alert(e.message); })
+          .decide(r.id, b.dataset.dec, $('cmt').value);
+      };
+    });
+    if ($('pay')) $('pay').onclick = function () {
+      google.script.run.withSuccessHandler(function (res) { d.close(); flash(res.id + ' · ' + res.status); load(); })
+        .withFailureHandler(function (e) { alert(e.message); })
+        .markPaid(r.id, $('ref').value, $('cosign') ? $('cosign').checked : false);
+    };
+    if ($('resub')) $('resub').onclick = function () { d.close(); view = 'resubmit'; renderForm($('view'), r); };
+    var comment = function (flag) {
+      google.script.run.withSuccessHandler(function () { openDetail(r.id); })
+        .withFailureHandler(function (e) { alert(e.message); }).addComment(r.id, $('note').value, flag);
+    };
+    $('addnote').onclick = function () { comment(false); };
+    if ($('flagceo')) $('flagceo').onclick = function () { comment(true); };
+  });
+}
+
+function load() {
+  call('listRequests', [], function (list) { requests = list; if (view !== 'new' && view !== 'resubmit') render(); });
+}
+
+$('nav').onclick = function (e) { if (e.target.dataset.view) { view = e.target.dataset.view; flash(''); render(); } };
+$('view').onclick = function (e) { var tr = e.target.closest('tr[data-id]'); if (tr) openDetail(tr.dataset.id); };
+
+call('getBootstrap', [], function (b) {
+  boot = b;
+  $('who').textContent = b.me ? (b.me.name || b.me.email) + ' · ' + b.me.role + (b.me.department ? ' · ' + b.me.department : '') : (b.email || '');
+  render();
+  if (b.me) { load(); if (OPEN_ID) openDetail(OPEN_ID); }
+});
+</script>
+</body>
+</html>
