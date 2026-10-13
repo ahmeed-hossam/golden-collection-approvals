@@ -1,0 +1,79 @@
+# Golden Collection approval rules (agreed middle option, 4 bands)
+# Values are per request, EGP including VAT. Recurring contracts use total contract value.
+# This file mirrors the Settings tab of the live Google Sheet. Keep the two in sync.
+
+currency: EGP
+vat_included: true
+
+bands:
+  - band: A
+    from_exclusive: 0
+    to_inclusive: 25000
+    l1_senior_lead: true
+    l2_dept_manager: false
+    fpa_second_approval: false        # FP&A post-reviews the log weekly instead
+    strategy_and_ceo: false
+    fpa_review: "Weekly post-review of the log"
+  - band: B
+    from_exclusive: 25000
+    to_inclusive: 100000
+    l1_senior_lead: true
+    l2_dept_manager: true
+    fpa_second_approval: true
+    strategy_and_ceo: false
+    fpa_review: "Fast: budget line only"
+    fpa_sla_working_days: 1
+  - band: C
+    from_exclusive: 100000
+    to_inclusive: 500000
+    l1_senior_lead: true
+    l2_dept_manager: true
+    fpa_second_approval: true
+    strategy_and_ceo: false
+    fpa_review: "Full: budget plus ROI (Marketing) or cost per contact (Ops)"
+    fpa_sla_working_days: 2
+  - band: D
+    from_exclusive: 500000
+    to_inclusive: null               # no upper limit
+    l1_senior_lead: true
+    l2_dept_manager: true
+    fpa_second_approval: true
+    strategy_and_ceo: true           # Strategy Analyst (Marketing or Ops), then CEO via the CEO EA
+    fpa_review: "Full, before Strategy review"
+    fpa_sla_working_days: 2
+
+joint_payment_threshold: 1500000     # Accounting + CEO sign payments above this
+
+# FP&A gives the second approval (and L2 approves first) regardless of amount when:
+fpa_always_triggers:
+  - out_of_budget
+  - new_vendor
+  - contract_over_12_months_or_auto_renewing
+  - hiring
+  - discount_beyond_price_list
+
+# Request types that always need L2, even in Band A
+l2_always_required:
+  - Capex purchase
+  - Trade promotion / discount
+  - Hiring
+
+media_exception:
+  description: "Ad top-ups within an FP&A-signed media plan skip FP&A sign-off"
+  ceiling: 100000                    # defaults to the Band B upper limit
+  senior_media_buyer_shift_limit: 0.15
+
+departments:
+  - Marketing        # media buyers, marketing executives, designers
+  - CX & Live Ops    # CX and live ops agents
+
+roles:
+  requester: "Raises the request"
+  l1: "Senior / Lead"
+  l2: "Department Manager (Marketing Manager, CX / Live Ops Manager)"
+  fpa: "Second approver; budget, ROI, cost per contact"
+  procurement: "Quotes: 1 up to 25K, 2 for 25K-100K, 3 above 100K"
+  accounting: "Invoices, 3-way match, top-ups, payments; does not approve spend"
+  strategy_analysts: "One for Marketing, one for Ops; recommend, do not approve"
+  ceo: "Final authority above Band C"
+  ceo_executive_assistant: "Copied at every stage; manages the CEO approval queue"
